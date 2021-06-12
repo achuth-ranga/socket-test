@@ -5,7 +5,16 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
+// import { Provider as AlertProvider } from 'react-alert'
+// import AlertTemplate from 'react-alert-template-basic'
 
+// // optional cofiguration
+// const options = {
+//   position: 'right center',
+//   timeout: 5000,
+//   offset: '30px',
+//   transition: 'scale'
+// }
 
 ReactDOM.render(
   <React.StrictMode>
