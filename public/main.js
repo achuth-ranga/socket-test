@@ -24,6 +24,8 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
+      nodeIntegrationInWorker: true,
+      enableRemoteModule: true
     },
   });
   win.removeMenu();

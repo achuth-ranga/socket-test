@@ -1,14 +1,17 @@
 {
+  "productName": "Socket Test",
   "name": "socket-test",
   "version": "0.1.0",
   "private": true,
   "main": "public/main.js",
+  "homepage": "./",
   "dependencies": {
     "@testing-library/jest-dom": "^5.13.0",
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^12.8.3",
     "bootstrap": "^4.6.0",
     "electron": "^13.1.1",
+    "npm-run-all": "^4.1.5",
     "react": "^17.0.2",
     "react-alert": "^7.0.3",
     "react-alert-template-basic": "^1.0.2",
@@ -20,11 +23,24 @@
     "web-vitals": "^1.1.2"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "export BROWSER=none && react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "electron-dev": "electron ."
+    "electron-dev": "export ELECTRON_START_URL=http://localhost:3000 && electron .",
+    "build-electron": "mkdir build/src && cp -r public/. build/electron && cp -r src/constants/. build/src/constants",
+    "package": "electron-builder build --mac --win --linux -c.extraMetadata.main=build/electron/main.js --publish never"
+  },
+  "build": {
+    "files": [
+      "build/**/*",
+      "node_modules/**/*"
+    ],
+    "publish": {
+      "provider": "github",
+      "repo": "socket-test",
+      "owner": "achuth-ranga"
+    }
   },
   "eslintConfig": {
     "extends": [
@@ -45,7 +61,9 @@
     ]
   },
   "devDependencies": {
+    "electron-builder": "^22.11.7",
     "electron-devtools-installer": "^3.2.0",
+    "electron-packager": "^15.2.0",
     "electron-react-devtools": "^0.5.3"
   }
 }

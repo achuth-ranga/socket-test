@@ -51,7 +51,7 @@ export class ConnectionDetails extends Component {
               <button
                 disabled={this.props.disabled}
                 type="button"
-                className="btn btn-info form-control"
+                className="btn btn-info btn-lg form-control"
                 onClick={() => this.props.callback(this.state.host, this.state.port)}
               >
                 {this.props.text}

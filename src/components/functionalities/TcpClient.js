@@ -2,16 +2,18 @@ import React, { Component } from "react";
 import { ConnectionDetails } from "../RUC/ConnectionDetails";
 import { UserInput } from "../RUC/UserInput";
 import { DisplayTable } from "../RUC/DisplayTable";
-import { TcpClientActions } from "../../constants/Actions";
 import { Spinner } from "../RUC/Spinner";
 import { withAlert } from "react-alert";
 
-const { ipcRenderer } = window.require("electron");
+/**
+ * Using the Node packages here
+ */
+const remote = window.require("electron").remote;
+const net = remote.require("net");
 
 class TcpClient extends Component {
   constructor(props) {
     super(props);
-
     this.state = {
       defaultHost: "localhost",
       defaultPort: 24000,
@@ -25,74 +27,96 @@ class TcpClient extends Component {
       connected: false,
       btnText: "Connect",
     };
+    this.clientSocket = null;
   }
-  componentDidMount() {
-    /*
-     * Register for call backs
-     */
-    let that = this;
-    ipcRenderer.on(TcpClientActions.RECEIVE, that.onDataReceive);
-    ipcRenderer.on(TcpClientActions.CONNECTED, that.onConnected);
-    ipcRenderer.on(TcpClientActions.CONNECT_ERROR, that.onFailToConnect);
-    ipcRenderer.on(TcpClientActions.DISCONNECTED, that.onDisConnected);
-  }
+  componentDidMount() {}
 
   componentWillUnmount() {
-    // ipcRenderer.removeListener(TcpClientActions.RECEIVE);
-    // ipcRenderer.removeListener(TcpClientActions.CONNECTED);
-    // ipcRenderer.removeListener(TcpClientActions.CONNECT_ERROR);
-    // ipcRenderer.removeListener(TcpClientActions.DISCONNECTED);
-    ipcRenderer.removeListener(TcpClientActions.RECEIVE, this.onDataReceive);
-    ipcRenderer.removeListener(TcpClientActions.CONNECTED, this.onConnected);
-    ipcRenderer.removeListener(
-      TcpClientActions.CONNECT_ERROR,
-      this.onFailToConnect
-    );
-    ipcRenderer.removeListener(
-      TcpClientActions.DISCONNECTED,
-      this.onDisConnected
-    );
-    this.disconnect();
+    this.disconnectClient();
   }
 
-  onConnected = (event, msg) => {
-    this.props.alert.success("Connected");
-    this.spinner(false);
-    this.setState({ connected: true, btnText: "Disconnect" });
-  };
-
-  onFailToConnect = (event, msg) => {
-    this.props.alert.error("Failed to connect");
-    this.resetConnection();
-  };
-
-  onDisConnected = (event, msg) => {
-    this.props.alert.error("Client disconnected");
-    this.resetConnection();
-  };
-
-  resetConnection() {
-    this.spinner(false);
-    this.setState({ connected: false, btnText: "Connect", dataReceived: [] });
-  }
-
-  spinner(state) {
+  spinner = (state) => {
     this.setState({
       loading: state,
     });
   }
 
-  handleConnectionEvent = (host, port) => {
+  resetConnection = ()=> {
+    this.spinner(false);
+    this.setState({ connected: false, btnText: "Connect", dataReceived: [] });
+  }
+
+  disconnectClient = ()=> {
+    try {
+      this.clientSocket.destroy();
+    } catch (error) {}
+  }
+
+  disconnect = () => {
+    this.disconnectClient();
+    this.spinner(true);
+  }
+
+  onClientConnected = () => {
+    this.props.alert.success("Connected");
+    this.spinner(false);
+    this.setState({ connected: true, btnText: "Disconnect" });
+  };
+
+  onClientFailToConnect = (error) => {
+    this.props.alert.error("Failed to connect "+error.code);
+    this.resetConnection();
+  };
+
+  onClientDisConnected = (error) => {
     if (this.state.connected) {
-      this.disconnect(host, port);
-    } else {
-      this.connect(host, port);
+      this.props.alert.error("Client disconnected ");
+      this.resetConnection();
     }
   };
 
-  disconnect(host, port) {
-    ipcRenderer.send(TcpClientActions.DISCONNECT, "");
+  onDataReceiveFromClient = (buffer) => {
+    let message = {
+      time: new Date().toISOString(),
+      msg: buffer.toString(),
+    };
+    let msgs = this.state.dataReceived;
+    msgs.push(message);
+    this.setState({ dataReceived: msgs });
+  };
+
+  sendDataToClient = (data) => {
+    let that = this;
+    this.setState(
+      {
+        dataToSend: data,
+      },
+      function () {
+        that.clientSocket.write(data);
+      }
+    );
+  };
+
+  createTcpSocketConnection = () => {
     this.spinner(true);
+    if (this.clientSocket) {
+      this.disconnectClient();
+    }
+    let that = this;
+    this.clientSocket = new net.Socket();
+    this.clientSocket.on("connect", that.onClientConnected);
+    this.clientSocket.on("data", that.onDataReceiveFromClient);
+    this.clientSocket.on("close", that.onClientDisConnected);
+    this.clientSocket.on("error", that.onClientFailToConnect);
+    this.clientSocket.connect(this.state.port, this.state.host);
+  };
+
+  handleConnection = ()=>{
+    if(this.state.connected){
+      this.disconnect()
+    }else{
+      this.createTcpSocketConnection();
+    }
   }
 
   connect = (host, port) => {
@@ -102,30 +126,7 @@ class TcpClient extends Component {
         host: host,
         port: port,
       },
-      function () {
-        that.spinner(true);
-        ipcRenderer.send(TcpClientActions.CONNECT, {
-          host: this.state.host,
-          port: this.state.port,
-        });
-      }
-    );
-  };
-
-  onDataReceive = (event, message) => {
-    let msgs = this.state.dataReceived;
-    msgs.push(message);
-    this.setState({ dataReceived: msgs });
-  };
-
-  sendData = (data) => {
-    this.setState(
-      {
-        dataToSend: data,
-      },
-      function () {
-        ipcRenderer.send(TcpClientActions.SEND, this.state.dataToSend);
-      }
+      that.handleConnection
     );
   };
 
@@ -137,7 +138,7 @@ class TcpClient extends Component {
           host={this.state.defaultHost}
           port={this.state.defaultPort}
           text={this.state.btnText}
-          callback={this.handleConnectionEvent}
+          callback={this.connect}
         ></ConnectionDetails>
         <div className="">
           {this.state.loading ? (
@@ -147,7 +148,7 @@ class TcpClient extends Component {
               <UserInput
                 title={this.state.sendTitle}
                 disable={!this.state.connected}
-                callback={(e) => this.sendData(e)}
+                callback={(e) => this.sendDataToClient(e)}
               ></UserInput>
               <DisplayTable
                 title={this.state.displayTitle}
