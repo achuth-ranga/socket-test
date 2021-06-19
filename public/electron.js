@@ -2,6 +2,10 @@ const { Actions } = require("./constants/Actions");
 const { TcpClient } = require("./tcp/tcp-client");
 const { app, ipcMain, BrowserWindow } = require("electron");
 const ACTIONS = new Actions();
+const isDev = require("electron-is-dev");
+const path = require("path");
+
+
 
 var tcpclient;
 var window;
@@ -29,8 +33,10 @@ function createWindow() {
     },
   });
   win.removeMenu();
-  win.loadURL("http://localhost:3000");
-  win.webContents.openDevTools();
+  win.loadURL(isDev
+    ? "http://localhost:3000"
+    : `file://${path.join(__dirname, "../build/index.html")}`);
+  // win.webContents.openDevTools();
   window = win;
   tcpclient = new TcpClient(window);
 }

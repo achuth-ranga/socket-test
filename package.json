@@ -1,16 +1,27 @@
 {
   "productName": "Socket Test",
   "name": "socket-test",
+  "description": "A tool to test TCP & MQTT clinet/server",
+  "author": {
+    "name": "Achuth Ranga Chena"
+  },
   "version": "0.1.0",
   "private": true,
-  "main": "public/main.js",
+  "main": "public/electron.js",
   "homepage": "./",
   "dependencies": {
     "@testing-library/jest-dom": "^5.13.0",
     "@testing-library/react": "^11.2.7",
     "@testing-library/user-event": "^12.8.3",
+    "@types/jest": "^26.0.23",
+    "@types/node": "^15.12.4",
+    "@types/react": "^17.0.11",
+    "@types/react-dom": "^17.0.8",
     "bootstrap": "^4.6.0",
-    "electron": "^13.1.1",
+    "concurrently": "^6.2.0",
+    "cross-env": "^7.0.3",
+    "electron-is-dev": "^2.0.0",
+    "electron-devtools-installer": "^2.2.4",
     "npm-run-all": "^4.1.5",
     "react": "^17.0.2",
     "react-alert": "^7.0.3",
@@ -20,16 +31,19 @@
     "react-router-dom": "^5.2.0",
     "react-scripts": "4.0.3",
     "react-spinners": "^0.11.0",
+    "typescript": "^4.3.4",
+    "wait-on": "^5.3.0",
     "web-vitals": "^1.1.2"
   },
   "scripts": {
-    "start": "export BROWSER=none && react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "electron-dev": "export ELECTRON_START_URL=http://localhost:3000 && electron .",
-    "build-electron": "mkdir build/src && cp -r public/. build/electron && cp -r src/constants/. build/src/constants",
-    "package": "electron-builder build --mac --win --linux -c.extraMetadata.main=build/electron/main.js --publish never"
+    "react-start": "react-scripts start",
+    "react-build": "react-scripts build",
+    "react-test": "react-scripts test --env=jsdom",
+    "react-eject": "react-scripts eject",
+    "electron-build": "electron-builder",
+    "release": "npm react-build && electron-builder --publish=always",
+    "build": "npm run react-build && npm run electron-build",
+    "start": "concurrently \"cross-env BROWSER=none npm run react-start\" \"wait-on http://localhost:3000 && electron .\""
   },
   "build": {
     "files": [
@@ -61,6 +75,7 @@
     ]
   },
   "devDependencies": {
+    "electron": "^13.1.2",
     "electron-builder": "^22.11.7",
     "electron-devtools-installer": "^3.2.0",
     "electron-packager": "^15.2.0",
