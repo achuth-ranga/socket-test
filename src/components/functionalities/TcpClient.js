@@ -4,7 +4,6 @@ import { UserInput } from "../RUC/UserInput";
 import { DisplayTable } from "../RUC/DisplayTable";
 import { Spinner } from "../RUC/Spinner";
 import { withAlert } from "react-alert";
-
 /**
  * Using the Node packages here
  */
@@ -145,6 +144,7 @@ class TcpClient extends Component {
             <Spinner />
           ) : (
             <>
+
               <UserInput
                 title={this.state.sendTitle}
                 disable={!this.state.connected}
