@@ -6,6 +6,6 @@ export class MqttClient extends Component {
     this.state = {};
   }
   render() {
-    return <h4>Under Progress</h4>;
+    return <h4>Under Progress Mqtt Client</h4>;
   }
 }

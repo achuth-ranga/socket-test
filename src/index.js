@@ -5,6 +5,8 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
+import { HashRouter } from 'react-router-dom';
+
 // import { Provider as AlertProvider } from 'react-alert'
 // import AlertTemplate from 'react-alert-template-basic'
 
@@ -17,9 +19,9 @@ import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
 // }
 
 ReactDOM.render(
-  <React.StrictMode>
+  <HashRouter>
     <App />
-  </React.StrictMode>,
+  </HashRouter>,
   document.getElementById('root')
 );
 

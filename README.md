@@ -13,4 +13,4 @@ You will also see any lint errors in the console.
 
 ### `npm run build`
 
-Builds the executable of version of the Socket Test, check the "dist" for the executables as per the OS type.
+(Requires latest node version) Builds the executable of version of the Socket Test, check the "dist" for the executables as per the OS type.
